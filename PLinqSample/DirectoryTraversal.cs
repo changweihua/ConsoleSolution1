@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Diagnostics;
 using System.IO;
+using System.Diagnostics;
 
-namespace ConsoleSample1
+namespace PLinqSample
 {
     public class DirectoryTraversal
     {
@@ -45,7 +45,7 @@ namespace ConsoleSample1
 
             var fileContents = from file in files.AsParallel()
                                let extension = Path.GetExtension(file)
-                               where extension == ".txt" || extension == "*.html"
+                               where extension == ".txt" || extension == ".html"
                                let text = File.ReadAllText(file)
                                select new FileResult { Text = text, FileName = file };
             try
@@ -59,14 +59,14 @@ namespace ConsoleSample1
             catch (AggregateException ae)
             {
                 ae.Handle((ex) =>
+                {
+                    if (ex is UnauthorizedAccessException)
                     {
-                        if (ex is UnauthorizedAccessException)
-                        {
-                            Console.WriteLine(ex.Message);
-                            return true;
-                        }
-                        return false;
-                    });
+                        Console.WriteLine(ex.Message);
+                        return true;
+                    }
+                    return false;
+                });
             }
 
             Console.WriteLine("文件数为 {0}, 耗时 {1} 毫秒", count, watch.ElapsedMilliseconds);
